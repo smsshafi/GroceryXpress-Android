@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 
 public class GXActivityManager extends Activity {
 	private static SharedPreferences preferences;
+	public static Context context;
 	
 	public synchronized static SharedPreferences getPreferences( final Context context ) {
 		if ( GXActivityManager.preferences == null ) {

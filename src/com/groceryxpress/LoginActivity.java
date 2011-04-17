@@ -25,7 +25,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -70,7 +69,6 @@ public class LoginActivity extends Activity {
     	
     	@Override
     	protected JSONObject doInBackground(Void... params) {
-    		Log.d("gx", "f00");
     		// Create a new HttpClient and Post Header
     	    HttpClient httpclient = new DefaultHttpClient();
     	    HttpPost httppost = new HttpPost("http://www.groceryxpress.net/api/authenticate.php");

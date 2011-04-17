@@ -4,7 +4,6 @@
       android:versionCode="1"
       android:versionName="1.0">
 
-
     <application android:icon="@drawable/icon" android:label="@string/app_name">
         <activity android:name=".LoginActivity"
                   android:label="@string/app_name"
@@ -22,6 +21,9 @@
             android:theme="@android:style/Theme.NoTitleBar">
         </activity>
         <activity android:name="com.groceryxpress.SearchActivity"
+            android:theme="@android:style/Theme.NoTitleBar">
+        </activity>
+        <activity android:name="com.groceryxpress.ProductDetailsActivity"
             android:theme="@android:style/Theme.NoTitleBar">
         </activity>
 
