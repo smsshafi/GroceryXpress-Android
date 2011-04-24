@@ -125,9 +125,7 @@ public class LoginActivity extends Activity {
 	    		if (jObject.getBoolean("error") == true) {
 	    			Toast.makeText(LoginActivity.this, jObject.getString("message"), Toast.LENGTH_LONG).show();
 	    		} else {
-	    			final Editor prefEditor = GXActivityManager.getPreferences(LoginActivity.this).edit();
-	    			prefEditor.putString("userid", jObject.getString("userid"));
-	    			prefEditor.commit();
+	    			GXActivityManager.setUserId(LoginActivity.this, jObject.getString("userid"));
 	    			startActivity(new Intent(LoginActivity.this, PostLoginActivity.class));
 	    			finish();
 	    		}

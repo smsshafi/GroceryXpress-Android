@@ -1,95 +1,102 @@
 package com.groceryxpress;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.os.AsyncTask;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ListView;
 
 import com.groceryxpress.adapters.ShoppingListAdapter;
+import com.groceryxpress.asynctasks.GetShoppingListAsyncTask;
 
 public class ShoppingListActivity extends Activity {
 	
+	public static final int REQUEST_CODE_EDIT_PRODUCT_QUANTITY_IN_SHOPPING_LIST = 1;
+	public static final int RESULT_CODE_QUANTITY_CHANGED = 2;
 	private String userid;
+	private ShoppingListAdapter sla;
 	private ProgressDialog progressDialog;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.shopping_list);
 		
-		userid = GXActivityManager.getPreferences(ShoppingListActivity.this).getString("userid", "0");
-		new GetShoppingList().execute(userid);
+		userid = GXActivityManager.getUserId(ShoppingListActivity.this);
 	}
 	
-	public class GetShoppingList extends AsyncTask<String, Void, ShoppingListAdapter> {
-		
-		
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
+	@Override
+	protected void onResume() {
+		super.onResume();
+		Log.d("gx", "ShoppingListActivity::onResume");
+		if (!GXActivityManager.isShoppingListUpToDate(ShoppingListActivity.this) || sla == null || sla.getCount() == 0) {
 			progressDialog = ProgressDialog.show(ShoppingListActivity.this, "", "Fetching your shopping list...", true);
-		}
-		
-		@Override
-		protected ShoppingListAdapter doInBackground(String... userid) {
-			// Create a new HttpClient and Post Header
-    	    HttpClient httpclient = new DefaultHttpClient();
-    	    HttpPost httppost = new HttpPost("http://www.groceryxpress.net/api/shoppinglist.php");
-
-    	    try {
-    	        // Add your data
-    	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-    	        nameValuePairs.add(new BasicNameValuePair("userid", userid[0]));
-    	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-    	        // Execute HTTP Post Request
-    	        HttpResponse response = httpclient.execute(httppost);
-    	        
-    	        InputStream ips  = response.getEntity().getContent();
-    	        StringBuffer stream = new StringBuffer();
-    	        byte[] b = new byte[4096];
-    	        for (int n; (n = ips.read(b)) != -1;) {
-    	        	stream.append(new String(b, 0, n));
-    	        }
-
-    	        ips.close();
-    	        
-    	        JSONArray jArray = new JSONArray(stream.toString());
-    	        ShoppingListAdapter sla = new ShoppingListAdapter(ShoppingListActivity.this, jArray);
-    	        
-    	        return sla;
-    	    } catch (ClientProtocolException e) {
-    	        e.printStackTrace();
-    	    } catch (IOException e) {
-    	    	e.printStackTrace();
-    	    } catch (Exception e) {
-    	    	e.printStackTrace();
-    	    }
-			return null;
-		}
-		
-		@Override
-		protected void onPostExecute(ShoppingListAdapter sla) {
-			super.onPostExecute(sla);
+			JSONArray shoppingListJSONArray = GXActivityManager.getShoppingListJSONArray(ShoppingListActivity.this);
+			ShoppingListAdapter sla = new ShoppingListAdapter(ShoppingListActivity.this, shoppingListJSONArray);
+			ShoppingListActivity.this.sla = sla;
+			((ListView)findViewById(R.id.shopping_list)).setAdapter(sla);
+			GXActivityManager.setShoppingListUpToDate(ShoppingListActivity.this, true);
 			((ListView)findViewById(R.id.shopping_list)).setAdapter(sla);
 			progressDialog.dismiss();
 		}
 		
+		
+//		if (!GXActivityManager.isShoppingListUpToDate(ShoppingListActivity.this) || sla == null) {
+//			new GetShoppingList(ShoppingListActivity.this).execute(userid);
+//		} else {
+//			if (((ListView)findViewById(R.id.shopping_list)).getAdapter() == null) {
+//				
+//			}
+//		}
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		progressDialog.dismiss();
+	}
+	
+//	public class GetShoppingList extends GetShoppingListAsyncTask {
+//		
+//		public GetShoppingList(Context context) {
+//			super(context);
+//			
+//		}
+//		@Override
+//		protected void onPreExecute() {
+//			super.onPreExecute();
+//			progressDialog = ProgressDialog.show(ShoppingListActivity.this, "", "Fetching your shopping list...", true);
+//		}
+//		
+//		@Override
+//		protected void onPostExecute(JSONArray jArray) {
+//			super.onPostExecute(jArray);
+//			ShoppingListAdapter sla = new ShoppingListAdapter(ShoppingListActivity.this, jArray);
+//			ShoppingListActivity.this.sla = sla;
+//			((ListView)findViewById(R.id.shopping_list)).setAdapter(sla);
+//			GXActivityManager.setShoppingListUpToDate(ShoppingListActivity.this, true);
+//			progressDialog.dismiss();
+//		}
+//	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		Log.d("gx", "ShoppingListActivity::onActivityResult");
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == REQUEST_CODE_EDIT_PRODUCT_QUANTITY_IN_SHOPPING_LIST) {
+			if(resultCode == RESULT_OK) {
+				int new_quantity = data.getIntExtra("new_quantity", -1); //-1 indicates weird state where no quantity was returned in the intent
+				if (new_quantity > 0) {
+					GXActivityManager.setShoppingListUpToDate(ShoppingListActivity.this, false);
+					GXActivityManager.getShoppingListJSONArray(ShoppingListActivity.this, data.getStringExtra("product_id"), String.valueOf(new_quantity));
+				}
+//				GXActivityManager.setQuantitiesChanged(ShoppingListActivity.this, true);
+			} else if (resultCode == RESULT_CANCELED) {
+				Log.d("gx", "Cancelled");
+			}
+		}
 	}
 }

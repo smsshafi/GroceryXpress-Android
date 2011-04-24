@@ -13,9 +13,12 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.groceryxpress.GXActivityManager;
 import com.groceryxpress.ProductDetailsActivity;
 import com.groceryxpress.R;
+import com.groceryxpress.ShoppingListActivity;
 import com.groceryxpress.tools.DrawableManager;
 
 public class ShoppingListAdapter extends BaseAdapter {
@@ -25,7 +28,12 @@ public class ShoppingListAdapter extends BaseAdapter {
 	
 	public ShoppingListAdapter(Context context, JSONArray shoppingListJSON) {
 		this.context = context;
-		this.shoppingListJSON = shoppingListJSON;
+		
+		if ( shoppingListJSON == null) {
+			this.shoppingListJSON = new JSONArray();
+		} else {
+			this.shoppingListJSON = shoppingListJSON;
+		}
 	}
 	
 	public int getCount() {
@@ -47,7 +55,7 @@ public class ShoppingListAdapter extends BaseAdapter {
 		return index;
 	}
 
-	public View getView(int index, View convertView, ViewGroup parent) {
+	public View getView(final int index, View convertView, ViewGroup parent) {
 		if (convertView == null) {
 			convertView = View.inflate(context, R.layout.shopping_list_row, new LinearLayout(context));
 		}
@@ -65,8 +73,16 @@ public class ShoppingListAdapter extends BaseAdapter {
 				
 				public void onClick(View arg0) {
 					Intent i = new Intent(context, ProductDetailsActivity.class);
-					i.putExtra("productJSONString", productInList.toString());
-					context.startActivity(i);
+					JSONArray jArray = GXActivityManager.getShoppingListJSONArray(context);
+					JSONObject productInListForOnClickListener = null;
+					try {
+						productInListForOnClickListener = jArray.getJSONObject(index);
+						i.putExtra("productJSONString", productInListForOnClickListener.toString());
+						((Activity)context).startActivityForResult(i, ShoppingListActivity.REQUEST_CODE_EDIT_PRODUCT_QUANTITY_IN_SHOPPING_LIST);
+					} catch (JSONException e) {
+						e.printStackTrace();
+						Toast.makeText(context, "Could not parse JSON.", Toast.LENGTH_LONG).show();
+					}
 					
 				}
 			});

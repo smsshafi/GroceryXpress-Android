@@ -3,4 +3,5 @@
     <string name="email">E-mail:</string>
     <string name="password">Password:</string>
     <string name="app_name">Grocery Xpress</string>
+    <string name="quantity_label">Quantity:</string>
 </resources>

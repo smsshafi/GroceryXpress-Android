@@ -51,9 +51,7 @@ public class PostLoginActivity extends TabActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.menu_logout:
-			final Editor prefEditor = GXActivityManager.getPreferences(PostLoginActivity.this).edit();
-			prefEditor.putString("userid", "");
-			prefEditor.commit();
+			GXActivityManager.setUserId(PostLoginActivity.this, "");
 			startActivity(new Intent(PostLoginActivity.this, LoginActivity.class));
 			finish();
 		}
