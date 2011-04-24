@@ -25,7 +25,7 @@ public class ShoppingListAdapter extends BaseAdapter {
 
 	JSONArray shoppingListJSON;
 	Context context;
-	
+
 	public ShoppingListAdapter(Context context, JSONArray shoppingListJSON) {
 		this.context = context;
 		
@@ -89,7 +89,7 @@ public class ShoppingListAdapter extends BaseAdapter {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
+
 		return convertView;
 	}
 
